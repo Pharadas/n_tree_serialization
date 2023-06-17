@@ -1,0 +1,10 @@
+[package]
+name = "n_tree_linearization"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "0.3"
+rand = "0.8.4"
+bitvec = "1"
+
