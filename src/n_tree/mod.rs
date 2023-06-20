@@ -4,13 +4,6 @@ use ::rand::prelude::*;
 
 const MAX_DEPTH: i32 = 6;
 
-fn merge_at(first_vec: &mut BitVec, second_vec: BitVec, at: usize) {
-    first_vec.reserve(second_vec.len());
-    for i in 0..(second_vec.len()) {
-        first_vec.insert(at + i, *second_vec.get(i).as_deref().unwrap());
-    }
-}
-
 #[derive(Debug)]
 pub struct QuadTree {
     pub ul: Vec2,
@@ -31,48 +24,44 @@ impl QuadTree {
         color: Color
     ) -> QuadTree {
         QuadTree {
-            ul: ul, lr: lr, depth: depth, children: children, filled: filled, color: color
+            ul, lr, depth, children, filled, color
         }
     }
 
     fn recursve_linear_tree(&mut self, depth: i32, linear_tree: &BitVec<u8>, i: &mut usize) {
         println!("working on depth: {}, linear tree index: {}", depth, i);
-        // if *i < linear_tree.len() {
-            if depth == MAX_DEPTH {
-                self.filled = linear_tree[*i];
-                *i += 1;
+        if depth == MAX_DEPTH {
+            self.filled = linear_tree[*i];
+            *i += 1;
 
-            } else {
-                // 1 -> checar que mas
+        } else {
+            // 1 -> checar que mas
+            if linear_tree[*i] {
+                *i += 1;
+                // completamente lleno (11)
                 if linear_tree[*i] {
                     *i += 1;
-                    // completamente lleno (11)
-                    if linear_tree[*i] {
-                        *i += 1;
-                        self.filled = true;
-                        self.color = RED;
+                    self.filled = true;
+                    self.color = RED;
 
-                    // parcialmente lleno (10)
-                    } else {
-                        *i += 1;
-                        let mut new_children = self.create_children_positions(WHITE);
-
-                        for child_num in (0..4).rev() {
-                            let mut mutable_child = new_children.pop().unwrap();
-                            mutable_child.recursve_linear_tree(depth + 1, linear_tree, i);
-                            self.children[child_num] = Some(Box::new(mutable_child));
-                        }
-                    }
-
-                // completamente vacio (0)
+                // parcialmente lleno (10)
                 } else {
                     *i += 1;
-                    self.filled = false;
+                    let mut new_children = self.create_children_positions(WHITE);
+
+                    for child_num in (0..4).rev() {
+                        let mut mutable_child = new_children.pop().unwrap();
+                        mutable_child.recursve_linear_tree(depth + 1, linear_tree, i);
+                        self.children[child_num] = Some(Box::new(mutable_child));
+                    }
                 }
+
+            // completamente vacio (0)
+            } else {
+                *i += 1;
+                self.filled = false;
             }
-        // } else {
-        //     return;
-        // }
+        }
     }
 
     pub fn new_from(
@@ -125,7 +114,7 @@ impl QuadTree {
     // 11 -> Filled all the way down
     // 10 -> Partially filled
     // 1 -> This is the last node and it's filled
-    pub fn linearize(root: &QuadTree) -> BitVec<u8> {
+    pub fn serialize(root: &QuadTree) -> BitVec<u8> {
         // you need to make sure to have cleaned the root node before passing it
         let mut queue: Vec<Option<&QuadTree>> = vec![Some(root)]; // We dont want this reference to be mutable
         let mut vec = BitVec::new();
@@ -180,7 +169,7 @@ impl QuadTree {
         }
     }
 
-    pub fn divide_at_point(&mut self, point: Vec2, color: Color) {
+    pub fn divide_at_point(&mut self, point: Vec2, _color: Color) {
         let mut rng = thread_rng();
         let rcolor = Color::new(rng.gen(), rng.gen(), rng.gen(), 1.);
 
