@@ -1,5 +1,5 @@
 [package]
-name = "n_tree_linearization"
+name = "n_tree_serialization"
 version = "0.1.0"
 edition = "2021"
 
